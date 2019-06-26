@@ -1,13 +1,17 @@
 {
-  "name": "cluster-master",
+  "name": "is-cluster-master",
   "version": "1.0.0",
   "description": "Find out main instance in a multi server cluster (like Kubernetes and etc)",
   "main": "dist/cluster-master.js",
   "types": "dist/cluster-master.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build" : "tsc",
+    "test": "jest",
+    "build": "tsc",
     "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WazZro/cluster-master.git"
   },
   "keywords": [
     "cluster",
@@ -17,7 +21,11 @@
     "isMaster",
     "isSlave"
   ],
-  "author": "Vadim Usinov <wazzroboy@gmail.com> (https://github.com/wazzro)",
+  "author": {
+    "name": "Vadim Usinov",
+    "email": "wazzroboy@gmail.com",
+    "url": "https://github.com/wazzro"
+  },
   "license": "MIT",
   "dependencies": {
     "ioredis": "^4.10.0"
@@ -26,10 +34,25 @@
     "@types/ioredis": "^4.0.12",
     "@types/jest": "^24.0.15",
     "@types/node": "^12.0.10",
+    "ioredis-mock": "^4.12.0",
     "jest": "^24.8.0",
     "ts-jest": "^24.0.0",
     "ts-node": "^8.0.3",
     "tslint": "^5.18.0",
     "typescript": "^3.5.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".spec.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
   }
 }
