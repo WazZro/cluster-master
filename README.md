@@ -60,4 +60,5 @@ When starting the worker, you can specify options in an object to update the def
 
 ## History
 
+* 1.0.1 Add jest tests
 * 1.0.0 Initial release
