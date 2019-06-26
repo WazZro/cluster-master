@@ -25,6 +25,7 @@ export class NodeCluster extends EventEmitter {
   private readonly timeout: number;
   private master: boolean;
   private keyPrefix: string;
+  private nodeIdentificator: string;
   private hostname: string;
 
   constructor(config: NodeClusterConfig) {
@@ -33,13 +34,12 @@ export class NodeCluster extends EventEmitter {
     this.master = false;
     this.timeout = config.timeout ? config.timeout : this.DEFAULT_TIMEOUT;
     this.keyPrefix = config.keyPrefix ? config.keyPrefix : this.DEFAULT_PREFIX;
-    this.hostname = `${os.hostname()}${process.pid}`;
-
-    this.register();
+    this.nodeIdentificator = `${os.hostname()}${process.pid}`;
+    this.hostname = os.hostname();
   }
 
   private async getCurrentNode(): Promise<Node> {
-    const res = await this.redis.get(this.hostname);
+    const res = await this.redis.get(this.nodeIdentificator);
 
     return res ? JSON.parse(res) : null;
   }
@@ -58,7 +58,7 @@ export class NodeCluster extends EventEmitter {
   }
 
   private async getNodes(): Promise<Node[]> {
-    const keys = await this.redis.keys(this.keyPrefix);
+    const keys = await this.redis.keys(`${this.keyPrefix}*`);
     const promises = [];
     const nodes = [];
 
@@ -71,13 +71,16 @@ export class NodeCluster extends EventEmitter {
     for (const node of result) {
       if (!node) continue;
       
-      nodes.push(JSON.parse(node));
+      const parsedNode = JSON.parse(node);
+      parsedNode.startDate = new Date(parsedNode.startDate);
+      parsedNode.updateDate = new Date(parsedNode.updateDate);
+      nodes.push(parsedNode);
     }
 
     return nodes;
   }
 
-  async register() {
+  public async register(): Promise<void> {
     const node: Node = {
       hostname: this.hostname,
       pid: process.pid,
@@ -89,12 +92,13 @@ export class NodeCluster extends EventEmitter {
 
     await this.redis
       .pipeline()
-      .set(node.hostname, JSON.stringify(node))
-      .expire(node.hostname, this.timeout + 60)
+      .set(this.nodeIdentificator, JSON.stringify(node))
+      .expire(this.nodeIdentificator, this.timeout + 60)
       .exec();
 
-    this.checkMaster();
+    await this.checkMaster();
     this.process();
+    this.emit('register');
   }
 
   process(): void {
@@ -106,8 +110,8 @@ export class NodeCluster extends EventEmitter {
 
       await this.redis
         .pipeline()
-        .set(this.hostname, JSON.stringify(node))
-        .expire(this.hostname, this.timeout + 60)
+        .set(this.nodeIdentificator, JSON.stringify(node))
+        .expire(this.nodeIdentificator, this.timeout + 60)
         .exec();
 
       this.checkMaster();
@@ -122,6 +126,6 @@ export class NodeCluster extends EventEmitter {
       return a.startDate.getTime() - b.startDate.getTime();
     })
 
-    return this.hostname === `${nodes[0].hostname}${nodes[0].pid}`;
+    return this.nodeIdentificator === `${nodes[0].hostname}${nodes[0].pid}`;
   }
 }
