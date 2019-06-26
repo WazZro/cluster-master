@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "removeComments": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "strict": true,
+    "sourceMap": true,
+    "baseUrl": "./"
+  },
+  "exclude": ["node_modules"]
+}
